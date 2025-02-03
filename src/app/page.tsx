@@ -14,13 +14,14 @@ export default function Home() {
 
   const handleTempoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setTempo(Number(event.target.value));
+    setIsActive(false)
   };
 
   useEffect(() => {
     if (isPlaying) {
       const interval = (60 / tempo) * 1000; // Convert BPM to milliseconds
       intervalRef.current = setInterval(() => {
-        setIsActive((prev) => !prev); // Toggle visual feedback
+        setIsActive(() => true); // Toggle visual feedback
         playClickSound(); // Play a sound
       }, interval);
     } else {
@@ -44,13 +45,24 @@ export default function Home() {
       <h1 className="text-8xl font-bold rainbow-text absolute top-8" >ELTON LIM GAY</h1>
 
       {/* Visual Indicator */}
-      <div className={`m-16 w-24 h-24 ${isActive ? "bg-red-500" : "bg-gray-700"} rounded-full`}></div>
-            
+      <div 
+        // key={isPlaying ? Date.now() : "inactive"} 
+        className={`m-16 w-16 h-16 
+        bg-gray-300 rounded-full`}
+        style={{
+          animation: isActive ? `pulse ${60 / tempo}s ease-in-out infinite` : "" ,
+          // transition: "transform 0.2s ease-in-out, background-color 0.2s ease-in-out", // Smooth reset
+        }}
+       ></div>
+      
+      {/* Tempo Display */}
+            <div className="mb-8 text-center">
+        <div className="text-8xl font-bold">{tempo}</div>
+        <div className="text-lg text-gray-400">BPM</div>
+      </div>
+
       {/* Tempo Control */}
       <div className="mb-7">
-        <label htmlFor="tempo" className="block text-center text-4xl mb-2">
-          {tempo}
-        </label>
         <input
           type="range"
           id="tempo"
@@ -58,7 +70,7 @@ export default function Home() {
           max="200"
           value={tempo}
           onChange={handleTempoChange}
-          className="w-64"
+          className="w-96 appearance-none bg-gray-700 rounded-full h-2 outline-none"
         />
       </div>  
     

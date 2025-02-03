@@ -32,3 +32,18 @@ body {
   -webkit-text-fill-color: transparent;
   animation: rainbow-gradient 2s linear infinite;
 }
+
+@keyframes pulse {
+  0% {
+    transform: scale(1.5);
+    background-color: #EF4444; /* Red */
+  }
+  /* 50% {
+    transform: scale(1.5);
+    background-color: #9b9797; Lighter red
+  } */
+  100% {
+    transform: scale(1);
+    background-color: rgb(209, 213, 219); /* gray-300 */
+  }
+}
