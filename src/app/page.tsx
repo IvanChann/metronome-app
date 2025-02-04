@@ -7,14 +7,24 @@ export default function Home() {
   const [tempo, setTempo] = useState(60); // Default tempo: 60 BPM
   const [isActive, setIsActive] = useState(false); // For visual feedback
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [tempValue, setTempValue] = useState(tempo.toString());
+  const MIN_BPM = 40;
+  const MAX_BPM = 300; 
 
   const handlePlayPause = () => {
     setIsPlaying(!isPlaying);
   };
 
-  const handleTempoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setTempo(Number(event.target.value));
-    setIsActive(false)
+  const handleTempoChange = (event: React.ChangeEvent<HTMLInputElement> | React.KeyboardEvent<HTMLInputElement>) => {
+    const value = Number(event.currentTarget.value)
+    const clampedValue = Math.max(MIN_BPM, Math.min(MAX_BPM, value));
+    // Update both tempo and tempValue
+    setTempo(clampedValue);
+    setTempValue(clampedValue.toString());
+
+    setIsActive(false);
+    setEditing(false);
   };
 
   useEffect(() => {
@@ -56,8 +66,31 @@ export default function Home() {
        ></div>
       
       {/* Tempo Display */}
-            <div className="mb-8 text-center">
-        <div className="text-8xl font-bold">{tempo}</div>
+      <div className="mb-8 text-center">
+        {editing ? (
+          <input
+            type="number"
+            value={tempValue}
+            min= {MIN_BPM}
+            max= {MAX_BPM}
+            onBlur={handleTempoChange} // Exit edit mode when losing focus
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleTempoChange(e); // Call handleTempoChange on Enter key press
+              }
+            }}
+            onChange={(e) => setTempValue(e.target.value)}
+            autoFocus
+            className="text-8xl font-bold bg-transparent text-center outline-none border-none h-24 " // Ensure border consistency
+          />
+        ) : (
+          <div
+            className="text-8xl font-bold cursor-pointer h-24"
+            onClick={() => setEditing(true)}
+          >
+            {tempo}
+          </div>
+        )}
         <div className="text-lg text-gray-400">BPM</div>
       </div>
 
@@ -66,8 +99,8 @@ export default function Home() {
         <input
           type="range"
           id="tempo"
-          min="40"
-          max="200"
+          min={MIN_BPM}
+          max={MAX_BPM}
           value={tempo}
           onChange={handleTempoChange}
           className="w-96 appearance-none bg-gray-700 rounded-full h-2 outline-none"
