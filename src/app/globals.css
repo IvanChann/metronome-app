@@ -44,7 +44,7 @@ body {
   } */
   100% {
     transform: scale(1);
-    background-color: rgb(209, 213, 219); /* gray-300 */
+    background-color: rgb(55, 65, 81); /* gray-700 */
   }
 }
 
