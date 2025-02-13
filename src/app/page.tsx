@@ -1,7 +1,7 @@
 "use client";
 
 import * as Tone from "tone";
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { MAX_BPM, MIN_BPM, DEFAULT_BPM, TIME_SIGNATURES } from "@/constants";
 
 
@@ -9,7 +9,6 @@ export default function Home() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [tempo, setTempo] = useState(DEFAULT_BPM); // Default tempo: 60 BPM
   const [isActive, setIsActive] = useState(false); // For visual feedback
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const [editing, setEditing] = useState(false);
   const [tempValue, setTempValue] = useState(tempo.toString());
   const [timeSignature, setTimeSignature] = useState(TIME_SIGNATURES[0]); // Default: 4/4
