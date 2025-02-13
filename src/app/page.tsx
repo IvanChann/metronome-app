@@ -41,7 +41,22 @@ export default function Home() {
 
   // Load Click Sound
   const click = useRef<Tone.Player | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false); // Track if audio is ready
 
+  const waitForLoad = async () => {
+    return new Promise<void>((resolve) => {
+      const checkLoaded = () => {
+        console.log("waiting")
+        if (click.current?.loaded) {
+          setIsLoaded(true);
+          resolve();
+        } else {
+          setTimeout(checkLoaded, 10); // Check again after 10ms
+        }
+      };
+      checkLoaded();
+    });
+  };
 
   const handlePlayPause = async () => {
     
@@ -53,19 +68,27 @@ export default function Home() {
     // await click.current.loaded; // Ensure sound is ready
     // }
     
-    if (!click.current) {
-      await Tone.start();
-      const player = new Tone.Player("/click.flac").toDestination();
-      await player.loaded; // Ensure sound is fully loaded
-      click.current = player; // Assign to ref after loading
-      console.log("Audio context started and click sound loaded");
+    if (!isLoaded) {
+      console.log("Initializing audio on user action...");
+      await Tone.start(); // Ensure AudioContext is started
+      
+      if (!click.current) {
+        click.current = new Tone.Player("/click.flac").toDestination();
+      } 
+      await waitForLoad(); // ✅ Ensure sound is fully loaded before continuing
     }
 
-    if (!click.current) {return}
+    
+
+    if (!click.current) {
+      
+      console.log("Audio file is still loading, try again.");
+      return;
+    }
 
     if (isPlaying) {
-      await Tone.getTransport().cancel();
-      await Tone.getTransport().stop();
+      Tone.getTransport().cancel();
+      Tone.getTransport().stop();
       setCurrentBeat(-1);
       setIsActive(false);
     } else {
