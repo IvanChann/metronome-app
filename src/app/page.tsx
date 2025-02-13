@@ -1,7 +1,9 @@
 "use client";
 
+import * as Tone from "tone";
 import { useState, useEffect, useRef } from "react";
 import { MAX_BPM, MIN_BPM, DEFAULT_BPM, TIME_SIGNATURES } from "@/constants";
+
 
 export default function Home() {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -13,7 +15,65 @@ export default function Home() {
   const [timeSignature, setTimeSignature] = useState(TIME_SIGNATURES[0]); // Default: 4/4
   const [currentBeat, setCurrentBeat] = useState(-1);
 
-  const handlePlayPause = () => {
+  // Old System
+
+  // const handlePlayPause = () => {
+  //   setIsPlaying(!isPlaying);
+  // };
+
+  
+  // useEffect(() => {
+  //   if (isPlaying) {
+  //     const interval = (60 / tempo) * 1000; // Convert BPM to milliseconds
+  //     intervalRef.current = setInterval(() => {
+  //       setCurrentBeat((prev) => (prev + 1) % timeSignature.beats); // Cycle through beats
+  //       setIsActive(() => true); // Toggle visual feedback
+  //     }, interval);
+  //   } else {
+  //     if (intervalRef.current) clearInterval(intervalRef.current);
+  //     setCurrentBeat(-1); // Reset to the first beat
+  //     setIsActive(false); // Reset visual feedback
+  //   }
+
+  //   return () => {
+  //     if (intervalRef.current) clearInterval(intervalRef.current);
+  //   };
+  // }, [isPlaying, tempo, timeSignature.beats]);
+
+  // Load Click Sound
+  const click = useRef<Tone.Player | null>(null);
+
+  const handlePlayPause = async () => {
+    
+    // Explicitly start the AudioContext on user interaction
+    if (Tone.getContext().state !== "running") {
+      // Start the AudioContext on the first user interaction
+      
+      await Tone.start();
+      click.current = new Tone.Player("/click.flac").toDestination();
+      await click.current.loaded; // Ensure sound is ready
+    }
+
+    if (!click.current) {
+      return
+    }
+
+    if (isPlaying) {
+      await Tone.getTransport().stop();
+      await Tone.getTransport().cancel();
+      setCurrentBeat(-1);
+      setIsActive(false);
+    } else {
+      Tone.getTransport().bpm.value = tempo;
+      Tone.getTransport().scheduleRepeat((time) => {
+        setCurrentBeat((prev) => (prev + 1) % timeSignature.beats);
+        setIsActive(true);
+        click.current?.start(time); // Play sound at scheduled time
+      }, "4n"); // Play on quarter notes
+  
+      Tone.getTransport().start();
+    }
+  
     setIsPlaying(!isPlaying);
   };
 
@@ -24,34 +84,12 @@ export default function Home() {
     setTempo(clampedValue);
     setTempValue(clampedValue.toString());
 
+      // Update Tone.js BPM
+    Tone.getTransport().bpm.value = clampedValue;
+
     setIsActive(false);
     setEditing(false);
   };
-
-  useEffect(() => {
-    if (isPlaying) {
-      const interval = (60 / tempo) * 1000; // Convert BPM to milliseconds
-      intervalRef.current = setInterval(() => {
-        setCurrentBeat((prev) => (prev + 1) % timeSignature.beats); // Cycle through beats
-        setIsActive(() => true); // Toggle visual feedback
-        playClickSound(); // Play a sound
-      }, interval);
-    } else {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      setCurrentBeat(-1); // Reset to the first beat
-      setIsActive(false); // Reset visual feedback
-    }
-
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [isPlaying, tempo, timeSignature.beats]);
-
-  const playClickSound = () => {
-    const audio = new Audio("/click.flac"); // Add a click sound file to your public folder
-    audio.play();
-  };
-  
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white select-none">
