@@ -42,24 +42,30 @@ export default function Home() {
   // Load Click Sound
   const click = useRef<Tone.Player | null>(null);
 
+
   const handlePlayPause = async () => {
     
-    // Explicitly start the AudioContext on user interaction
-    if (Tone.getContext().state !== "running") {
-      // Start the AudioContext on the first user interaction
-      
+    // // Explicitly start the AudioContext on user interaction
+    // if (Tone.getContext().state !== "running") {
+    //   // Start the AudioContext on the first user interaction
+    // await Tone.start();
+    // click.current = new Tone.Player("/click.flac").toDestination();
+    // await click.current.loaded; // Ensure sound is ready
+    // }
+    
+    if (!click.current) {
       await Tone.start();
-      click.current = new Tone.Player("/click.flac").toDestination();
-      await click.current.loaded; // Ensure sound is ready
+      const player = new Tone.Player("/click.flac").toDestination();
+      await player.loaded; // Ensure sound is fully loaded
+      click.current = player; // Assign to ref after loading
+      console.log("Audio context started and click sound loaded");
     }
 
-    if (!click.current) {
-      return
-    }
+    if (!click.current) {return}
 
     if (isPlaying) {
-      await Tone.getTransport().stop();
       await Tone.getTransport().cancel();
+      await Tone.getTransport().stop();
       setCurrentBeat(-1);
       setIsActive(false);
     } else {
@@ -88,6 +94,7 @@ export default function Home() {
 
     setIsActive(false);
     setEditing(false);
+    setCurrentBeat(-1);
   };
 
   return (
